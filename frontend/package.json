@@ -4,6 +4,7 @@
   "description": "A Vue.js project",
   "author": "2016163018 <2016163018@yonsei.ac.kr>",
   "private": true,
+  "proxy": "http://localhost:3000",
   "scripts": {
     "dev": "webpack-dev-server --inline --progress --config build/webpack.dev.conf.js",
     "start": "npm run dev",
