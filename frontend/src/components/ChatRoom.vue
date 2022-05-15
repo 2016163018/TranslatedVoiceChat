@@ -8,7 +8,7 @@
 import { io } from 'socket.io-client';
 
 export default {
-  name: 'Room',
+  name: 'ChatRoom',
   setup () {
     const socket = io('/');
 

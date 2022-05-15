@@ -4,6 +4,7 @@ const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 
 const indexRouter = require('./routes/index');
+const chatRouter = require('./routes/chat');
 const socket = require('./routes/socket');
 
 const app = express();
@@ -17,6 +18,7 @@ app.use(express.static(path.join(__dirname, '../frontend/dist')));
 app.use(express.static(path.join(__dirname, '../frontend')));
 
 app.use('/', indexRouter);
+app.use('/chat', chatRouter);
 
 app.socket = socket;
 
