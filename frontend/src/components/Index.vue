@@ -1,10 +1,16 @@
 <template>
-  <div>This is Index!</div>
+  <div>
+    <Room />
+  </div>
 </template>
 
 <script>
-export default {}
+import Room from './Room.vue';
+
+export default {
+  name: 'Index',
+  components: { Room }
+};
 </script>
 
-<style>
-</style>
+<style></style>
