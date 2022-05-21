@@ -1,6 +1,9 @@
 <template>
   <div>
-    <div v-if="isJoined">This is Room</div>
+    <div v-if="isJoined">
+      <input @keydown="sendMessage"/>
+      <MessageContainer :messages="messages"/>
+    </div>
     <div v-else>The room is not available</div>
   </div>
 </template>
@@ -8,14 +11,17 @@
 <script>
 import { io } from 'socket.io-client';
 
-import { onMounted, onUnmounted, ref } from '@vue/composition-api';
+import { onMounted, onUnmounted, reactive, ref } from '@vue/composition-api';
 import router from '../router';
+import MessageContainer from './MessageContainer.vue';
 
 export default {
   name: 'ChatRoom',
+  components: {MessageContainer},
   setup () {
     const isJoined = ref(false);
     const socket = ref();
+    const messages = reactive([]);
     const roomId = router.currentRoute.params.roomId;
 
     const useSocket = () => {
@@ -30,10 +36,19 @@ export default {
       });
 
       socket.value.on('joined', () => { isJoined.value = true; });
-      socket.value.on('chat', (param) => console.log(param));
+      socket.value.on('receiveMessage', (message) => messages.push(message));
       socket.value.on('disconnect', () => { isJoined.value = false; });
 
       return { isSocketConnected };
+    };
+
+    const sendMessage = (event) => {
+      if (event.isComposing || event.key !== 'Enter') {
+        return true;
+      }
+
+      socket.value.emit('sendMessage', event.target.value);
+      event.target.value = '';
     };
 
     onMounted(async () => {
@@ -47,7 +62,7 @@ export default {
       socket.value.disconnect();
     });
 
-    return {isJoined};
+    return {isJoined, sendMessage, messages};
   }
 };
 </script>
