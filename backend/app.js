@@ -17,8 +17,8 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, '../frontend/dist')));
 app.use(express.static(path.join(__dirname, '../frontend')));
 
-app.use('/', indexRouter);
 app.use('/chat', chatRouter);
+app.use('*', indexRouter);
 
 app.socket = socket;
 

@@ -11,7 +11,9 @@ import Vue from 'vue';
 Vue.use(vueCompositionApi);
 
 export default {
-  name: 'App'
+  name: 'App',
+  setup () {
+  }
 };
 </script>
 
