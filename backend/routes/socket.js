@@ -16,6 +16,15 @@ socket.on("connection", (client) => {
     socket.to(roomId).emit("receiveMessage", { id: client.id, message });
   });
 
+  client.on("sendSDP", (description) => {
+    console.log(description);
+    client.broadcast.to(roomId).emit('receiveSDP', description);
+  })
+
+  client.on("sendICE", (candidate) => {
+    client.broadcast.to(roomId).emit('sendICE', candidate);
+  })
+
   client.on("disconnect", () => {
     exitRoom(roomId, client.id);
     console.log("client exited :", client.id);
@@ -23,6 +32,10 @@ socket.on("connection", (client) => {
 
   client.join(roomId);
   client.emit("joined");
+
+  client.on('callNeeded', () => {
+    client.broadcast.to(roomId).emit('callNeeded');
+  })
 });
 
 module.exports = socket;
