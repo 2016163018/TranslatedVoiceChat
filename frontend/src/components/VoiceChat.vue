@@ -106,6 +106,8 @@ export default {
       useSpeechRecognition();
     });
 
+    setInterval(() => console.log(recognition), 10000);
+
     watch(lastResult, () => {
       if (lastResult.value.isFinal) {
         socket.emit('sendMessage', lastResult.value.text);
