@@ -1,8 +1,7 @@
 <template>
   <div v-if="isJoined">
-    <input @keydown="sendMessage"/>
-    <MessageContainer :messages="messages"/>
     <VoiceChat :socket="socket"/>
+    <MessageContainer :messages="messages"/>
   </div>
   <div v-else>The room is not available</div>
 </template>
@@ -42,15 +41,6 @@ export default {
       return { isSocketConnected };
     };
 
-    const sendMessage = (event) => {
-      if (event.isComposing || event.key !== 'Enter') {
-        return true;
-      }
-
-      socket.value.emit('sendMessage', event.target.value);
-      event.target.value = '';
-    };
-
     onMounted(async () => {
       const {isSocketConnected} = useSocket();
       await isSocketConnected;
@@ -62,7 +52,7 @@ export default {
       socket.value.disconnect();
     });
 
-    return {isJoined, sendMessage, messages, socket};
+    return {isJoined, messages, socket};
   }
 };
 </script>
