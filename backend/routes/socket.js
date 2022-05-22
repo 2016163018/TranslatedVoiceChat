@@ -17,7 +17,6 @@ socket.on("connection", (client) => {
   });
 
   client.on("sendSDP", (description) => {
-    console.log(description);
     client.broadcast.to(roomId).emit('receiveSDP', description);
   })
 
@@ -32,9 +31,13 @@ socket.on("connection", (client) => {
 
   client.join(roomId);
   client.emit("joined");
+  client.broadcast.to(roomId).emit('joinNew');
 
   client.on('callNeeded', () => {
     client.broadcast.to(roomId).emit('callNeeded');
+    setTimeout(() => {
+      client.broadcast.to(roomId).emit('callNeeded');
+    }, 1000);
   })
 });
 

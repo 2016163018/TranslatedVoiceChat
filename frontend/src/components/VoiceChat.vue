@@ -1,5 +1,5 @@
 <template>
-    <audio ref="audio" autoplay volume/>
+    <audio ref="audio" autoplay controls volume />
 </template>
 
 <script>
@@ -15,18 +15,16 @@ export default {
     const audio = ref();
 
     const createPeerConnection = () => {
-      const pc = new RTCPeerConnection();
+      const pc = new RTCPeerConnection({ iceServers: [{urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302', 'stun:stun2.l.google.com:19302', 'stun:stun3.l.google.com:19302']}] });
       audioStream.value.getTracks().forEach(track => pc.addTrack(track));
 
       const offer = async () => {
         const description = await pc.createOffer();
         await pc.setLocalDescription(description);
         socket.emit('sendSDP', description);
-        console.log('offer!');
       };
 
       const answer = async (remoteDescription) => {
-        console.log(remoteDescription);
         await pc.setRemoteDescription(remoteDescription);
 
         if (remoteDescription.type !== 'offer') {
@@ -36,37 +34,36 @@ export default {
         const description = await pc.createAnswer();
         await pc.setLocalDescription(description);
         socket.emit('sendSDP', description);
-        console.log('answer!');
       };
 
       const sendICE = ({candidate}) => {
+        if (!candidate) {
+          return;
+        }
         socket.emit('sendICE', candidate);
       };
 
       const receiveICE = ({candidate}) => {
-        pc.addIceCandidate(new RTCIceCandidate(candidate));
+        pc.addIceCandidate(candidate);
       };
 
       const receiveTrack = ({track}) => {
         const stream = new MediaStream([track]);
         audio.value.srcObject = stream;
-        audio.value.load();
-        audio.value.play();
       };
 
       pc.onicecandidate = sendICE;
       pc.ontrack = receiveTrack;
 
-      socket.on('callNeeded', offer);
       socket.on('receiveSDP', answer);
       socket.on('receiveICE', receiveICE);
-
-      socket.emit('callNeeded');
+      socket.on('callNeeded', offer);
     };
 
     onMounted(async () => {
       audioStream.value = await navigator.mediaDevices.getUserMedia({audio: true});
       createPeerConnection();
+      socket.emit('callNeeded');
     });
 
     return { audio };
