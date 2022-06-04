@@ -1,9 +1,5 @@
 <template>
-<div>
     <audio ref="audio" autoplay controls volume />
-    <div>{{ lastResult.text }}</div>
-</div>
-
 </template>
 
 <script>
@@ -14,15 +10,19 @@ export default {
   props: {
     socket: Object
   },
-  setup ({socket}) {
-    const audioStream = ref();
+  setup ({socket}, {emit}) {
     const audio = ref();
-    const lastResult = ref({text: ''});
+    const lastResult = ref({text: '', isFinal: false});
     const recognition = ref();
 
-    const createPeerConnection = () => {
-      const pc = new RTCPeerConnection({ iceServers: [{urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302', 'stun:stun2.l.google.com:19302', 'stun:stun3.l.google.com:19302']}] });
-      audioStream.value.getTracks().forEach(track => pc.addTrack(track));
+    const createPeerConnection = async () => {
+      const makePC = async () => {
+        const pc = new RTCPeerConnection({ iceServers: [{urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302', 'stun:stun2.l.google.com:19302', 'stun:stun3.l.google.com:19302']}] });
+        const audioStream = await navigator.mediaDevices.getUserMedia({audio: true});
+        audioStream.getTracks().forEach(track => pc.addTrack(track));
+
+        return pc;
+      };
 
       const offer = async () => {
         const description = await pc.createOffer();
@@ -58,6 +58,8 @@ export default {
         audio.value.srcObject = stream;
       };
 
+      const pc = await makePC();
+
       pc.onicecandidate = sendICE;
       pc.ontrack = receiveTrack;
 
@@ -73,12 +75,14 @@ export default {
           text: last.reduce((prev, curr) => prev + curr.transcript, '').trim(),
           isFinal: results[results.length - 1].isFinal
         };
+        emit('newMessage', lastResult.value.text);
       };
 
       const makeNewRecognition = () => {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         const newRecognition = new SpeechRecognition();
 
+        newRecognition.lang = navigator.language;
         newRecognition.continuous = true;
         newRecognition.interimResults = true;
 
@@ -100,21 +104,18 @@ export default {
     };
 
     onMounted(async () => {
-      audioStream.value = await navigator.mediaDevices.getUserMedia({audio: true});
-      createPeerConnection();
-      socket.emit('callNeeded');
       useSpeechRecognition();
+      await createPeerConnection();
+      socket.emit('callNeeded');
     });
 
-    setInterval(() => console.log(recognition), 10000);
-
-    watch(lastResult, () => {
+    watch(() => lastResult.value, () => {
       if (lastResult.value.isFinal) {
-        socket.emit('sendMessage', lastResult.value.text);
+        socket.emit('sendMessage', {text: lastResult.value.text, locale: navigator.language});
       }
     });
 
-    return { audio, audioStream, lastResult };
+    return { audio, lastResult, createPeerConnection };
   }
 };
 </script>

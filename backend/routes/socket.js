@@ -12,8 +12,7 @@ socket.on("connection", (client) => {
   }
 
   client.on("sendMessage", (message) => {
-    console.log(message);
-    socket.to(roomId).emit("receiveMessage", { id: client.id, message });
+    socket.to(roomId).emit("receiveMessage", { id: client.id, ...message });
   });
 
   client.on("sendSDP", (description) => {

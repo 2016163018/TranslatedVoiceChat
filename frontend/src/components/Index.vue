@@ -1,6 +1,5 @@
 <template>
   <div>
-    <div>This is main page</div>
     <button @click="fetchRoomId">Create new room</button>
   </div>
 </template>
@@ -29,4 +28,8 @@ export default {
 };
 </script>
 
-<style></style>
+<style scoped>
+ div {
+   margin-top: 200px;
+ }
+</style>

@@ -1,9 +1,11 @@
 <template>
+<div class="chatroom-container">
   <div v-if="isJoined">
-    <VoiceChat :socket="socket"/>
-    <MessageContainer :messages="messages"/>
+    <VoiceChat :socket="socket" @newMessage="handleNewMessage" />
+    <MessageContainer :messages="messages" :message="message"/>
   </div>
   <div v-else>The room is not available</div>
+</div>
 </template>
 
 <script>
@@ -22,6 +24,7 @@ export default {
     const socket = ref();
     const messages = reactive([]);
     const roomId = router.currentRoute.params.roomId;
+    const message = ref('');
 
     const useSocket = () => {
       socket.value = io('/', {
@@ -35,8 +38,12 @@ export default {
       });
 
       socket.value.on('joined', () => { isJoined.value = true; });
-      socket.value.on('receiveMessage', (message) => messages.push(message));
       socket.value.on('disconnect', () => { isJoined.value = false; });
+      socket.value.on('receiveMessage', (message) => {
+        const isMe = socket.value.id === message.id;
+        console.log(message);
+        messages.push({ isMe, text: message.text });
+      });
 
       return { isSocketConnected };
     };
@@ -52,9 +59,29 @@ export default {
       socket.value.disconnect();
     });
 
-    return {isJoined, messages, socket};
+    const handleNewMessage = (value) => {
+      message.value = value;
+    };
+
+    return {isJoined, messages, socket, message, handleNewMessage};
   }
 };
 </script>
 
-<style></style>
+<style scoped>
+.chatroom-container {
+  max-width: 1200px;
+  min-width: 500px;
+  background-color: #ccd5ae;
+  padding: 50px 30px;
+  height: 100vh;
+  box-sizing: border-box;
+}
+
+div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+</style>
