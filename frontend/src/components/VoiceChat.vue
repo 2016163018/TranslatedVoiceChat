@@ -111,7 +111,7 @@ export default {
 
     watch(() => lastResult.value, () => {
       if (lastResult.value.isFinal) {
-        socket.emit('sendMessage', {text: lastResult.value.text, locale: navigator.language});
+        socket.emit('sendMessage', {text: lastResult.value.text});
       }
     });
 

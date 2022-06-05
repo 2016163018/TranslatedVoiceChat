@@ -4,7 +4,7 @@
     <div class="message-wrapper">
       <div class="message" v-for="(message, index) in messages" :key="index">
         <span class="message-sender">{{message.isMe ? "나" : "상대"}}</span>
-        <span class="message-content">{{message.text}}</span>
+        <span class="message-content">{{!message.isMe && message.translatedText ? `${message.translatedText} (${message.text})`: message.text }}</span>
       </div>
   </div>
   <div class="message-writing">{{message}}</div>

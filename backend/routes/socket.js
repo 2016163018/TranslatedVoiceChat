@@ -1,18 +1,29 @@
 const io = require("socket.io");
-const { joinRoom, exitRoom } = require("../services/rooms");
+const { joinRoom, exitRoom, getOpponentId, getLocale } = require("../services/rooms");
+const { getTranslate } = require("../services/translate");
 const socket = io({ cors: { origin: "*" } });
 
 socket.on("connection", (client) => {
   const roomId = client.handshake.query.roomId;
-  const isJoined = joinRoom(roomId, client.id);
+  const locale = client.handshake.query?.locale.split('-')[0] ?? null;
+  const isJoined = joinRoom(roomId, client.id, locale);
 
   if (!isJoined || !roomId) {
     client.disconnect();
     return;
   }
 
-  client.on("sendMessage", (message) => {
-    socket.to(roomId).emit("receiveMessage", { id: client.id, ...message });
+  client.on("sendMessage", async ({text}) => {
+    const opponent = getOpponentId(roomId, client.id);
+    const sourceLocale = getLocale(roomId, client.id);
+    const targetLocale = getLocale(roomId, opponent);
+
+    if (!targetLocale || sourceLocale == targetLocale) {
+      socket.to(roomId).emit("receiveMessage", { id: client.id, text, sourceLocale, targetLocale });
+    } else {
+      const translatedText = await getTranslate(text, sourceLocale, targetLocale);
+      socket.to(roomId).emit("receiveMessage", { id: client.id, text, sourceLocale, targetLocale, translatedText });
+    }
   });
 
   client.on("sendSDP", (description) => {

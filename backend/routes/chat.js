@@ -8,8 +8,4 @@ router.get("/new", function (_, res) {
   res.json({ roomId });
 });
 
-// router.get("/:rommId/join", function (_, res) {
-//   const 
-// });
-
 module.exports = router;

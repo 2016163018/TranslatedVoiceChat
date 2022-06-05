@@ -28,7 +28,7 @@ export default {
 
     const useSocket = () => {
       socket.value = io('/', {
-        query: { roomId }
+        query: { roomId, locale: window.navigator.language }
       });
 
       const isSocketConnected = new Promise((resolve) => {
@@ -41,8 +41,7 @@ export default {
       socket.value.on('disconnect', () => { isJoined.value = false; });
       socket.value.on('receiveMessage', (message) => {
         const isMe = socket.value.id === message.id;
-        console.log(message);
-        messages.push({ isMe, text: message.text });
+        messages.push({ isMe, ...message });
       });
 
       return { isSocketConnected };
